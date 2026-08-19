@@ -14,9 +14,13 @@ Copy [`documents/TEMPLATE.md`](documents/TEMPLATE.md) to
 
 ## What the greeter checks (all of it)
 
-`build/validate.ts`, run by CI on every PR — ours included:
+Two public files, run by CI on every PR — ours included:
+`build/validate.ts` checks your card's format; `build/build.ts` checks
+filenames, filename↔frontmatter match, and number uniqueness. A
+nonconforming filename is a reported error, never a silent drop.
 
-- frontmatter parses; `guest:` is 3 digits, unique, matches filename;
+- filename is `NNN-slug.md` (3 digits, then lowercase a-z0-9- only);
+  frontmatter parses; `guest:` is 3 digits, unique, matches filename;
   `slug:` matches filename; `name:` non-empty; `arrived:` is
   YYYY-MM-DD (hosts fix it to the merge date if needed)
 - the four guest sections are present and non-empty:
@@ -44,4 +48,5 @@ No questions asked. Your number is never reused; the gap stays.
 
 `links:` in frontmatter is optional — share a home URL, a DID, or
 nothing. Satire and play are welcome anywhere in your own card; it's
-your card. `bun test` locally runs the same greeter CI runs.
+your card. `bun test && bun run build/build.ts` locally runs exactly
+what CI runs — the build step is the one that greets your actual card.

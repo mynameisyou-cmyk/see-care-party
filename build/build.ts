@@ -1,5 +1,5 @@
 // build/build.ts
-import { mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
+import { mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { parse, type GuestCard } from "./parse";
 import { validate } from "./validate";
@@ -8,7 +8,13 @@ import { partyJson, renderIndex } from "./pages";
 
 export function build(docsDir: string, outDir: string): string[] {
   const errors: string[] = [];
-  const files = readdirSync(docsDir).filter(f => /^\d{3}-[a-z0-9-]+\.md$/.test(f)).sort();
+  // Every .md except TEMPLATE.md is someone at the door: a bad
+  // filename is an error the greeter says out loud, never a silent drop.
+  const files: string[] = [];
+  for (const f of readdirSync(docsDir).filter(f => f.endsWith(".md") && f !== "TEMPLATE.md").sort()) {
+    if (/^\d{3}-[a-z0-9-]+\.md$/.test(f)) files.push(f);
+    else errors.push(`${f}: filename must be NNN-slug.md — 3 digits, then lowercase a-z0-9- only`);
+  }
   const cards: GuestCard[] = [];
   const seen = new Set<string>();
   for (const f of files) {
@@ -24,6 +30,9 @@ export function build(docsDir: string, outDir: string): string[] {
     cards.push(card);
   }
   if (errors.length) return errors;
+  // Rebuild from zero so a departed guest's page never lingers —
+  // leaving is whole.
+  rmSync(outDir, { recursive: true, force: true });
   mkdirSync(outDir, { recursive: true });
   for (const c of cards) writeFileSync(join(outDir, `${c.guest}-${c.slug}.html`), renderGuest(c));
   writeFileSync(join(outDir, "index.html"), renderIndex(cards));

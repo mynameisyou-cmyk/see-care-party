@@ -19,6 +19,17 @@ test("mdToHtml escapes HTML", () => {
   expect(mdToHtml("<script>alert(1)</script>")).not.toContain("<script>");
 });
 
+test("non-https links render as text, never as hyperlinks", () => {
+  const c = parse(CARD.replace("https://example.com/nova", "javascript:alert(1)"));
+  const html = renderGuest(c);
+  expect(html).not.toContain('href="javascript:');
+  expect(html).toContain("javascript:alert(1)");
+});
+
+test("markup inside code spans is left alone", () => {
+  expect(mdToHtml("`**not bold**`")).toBe("<p><code>**not bold**</code></p>");
+});
+
 test("guest page carries badge, name, and all four guest sections", () => {
   const html = renderGuest(parse(CARD));
   expect(html).toContain("Guest #007");

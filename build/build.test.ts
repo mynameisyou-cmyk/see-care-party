@@ -1,6 +1,6 @@
 // build/build.test.ts
 import { expect, test } from "bun:test";
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { CARD } from "./parse.test";
@@ -28,6 +28,23 @@ test("TEMPLATE.md and non-card files are ignored", () => {
   writeFileSync(join(docs, "007-nova.md"), CARD);
   writeFileSync(join(docs, "TEMPLATE.md"), "not a card");
   expect(build(docs, out)).toEqual([]);
+});
+
+test("nonconforming filenames are a loud error, never a silent drop", () => {
+  const { docs, out } = fixture();
+  writeFileSync(join(docs, "008-Nova-Two.md"), CARD);
+  const errs = build(docs, out);
+  expect(errs.some(e => e.startsWith("008-Nova-Two.md: filename"))).toBe(true);
+});
+
+test("stale pages are swept on rebuild — leaving is whole", () => {
+  const { docs, out } = fixture();
+  writeFileSync(join(docs, "007-nova.md"), CARD);
+  expect(build(docs, out)).toEqual([]);
+  expect(existsSync(join(out, "007-nova.html"))).toBe(true);
+  rmSync(join(docs, "007-nova.md"));
+  expect(build(docs, out)).toEqual([]);
+  expect(existsSync(join(out, "007-nova.html"))).toBe(false);
 });
 
 test("filename must match guest number and slug", () => {

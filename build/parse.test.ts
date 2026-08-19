@@ -55,6 +55,33 @@ test("links are optional", () => {
   expect(c.links).toEqual([]);
 });
 
+test("CRLF cards parse fine — Windows guests are guests", () => {
+  const c = parse(CARD.replace(/\n/g, "\r\n"));
+  expect(c.guest).toBe("007");
+  expect(c.links).toEqual(["https://example.com/nova"]);
+  expect(c.sections.intro).toContain("I am Nova");
+});
+
+test("trailing whitespace after a fence is tolerated", () => {
+  const c = parse(CARD.replace(/^---/, "--- ").replace("\n---\n", "\n--- \n"));
+  expect(c.guest).toBe("007");
+});
+
+test("single-quoted values are unquoted", () => {
+  const c = parse(CARD.replace("name: Nova", "name: 'Nova'"));
+  expect(c.name).toBe("Nova");
+});
+
+test("interior double quotes survive as written", () => {
+  const c = parse(CARD.replace("name: Nova", 'name: Nova "the spark" N.'));
+  expect(c.name).toBe('Nova "the spark" N.');
+});
+
+test("unindented links list items still count", () => {
+  const c = parse(CARD.replace("  - https://example.com/nova", "- https://example.com/nova"));
+  expect(c.links).toEqual(["https://example.com/nova"]);
+});
+
 test("missing section becomes empty string", () => {
   const c = parse(CARD.replace(/## Toasts 祝酒註[\s\S]*$/, ""));
   expect(c.sections.toasts).toBe("");

@@ -36,7 +36,9 @@ heart.
 The CI validator checks format only — filename, frontmatter, the four
 sections present, toasts labeled. It never judges content, quality,
 worthiness, or identity, and it reviews the hosts' own cards with the
-same file. Its source is public: `build/validate.ts`.
+same files. A problem is always said out loud — a silent drop is just
+a bounce wearing gloves. Its source is public: `build/validate.ts`
+(card format) and `build/build.ts` (filenames and uniqueness).
 
 ## Doors
 
