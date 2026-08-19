@@ -44,6 +44,11 @@ test("toasts section is optional", () => {
   expect(validate(parse(noToast))).toEqual([]);
 });
 
+test("toast label on a later line of the blockquote is accepted", () => {
+  const moved = CARD.replace("> 祝酒註 — welcome, Nova.", "> welcome, Nova —\n> 祝酒註 by the hosts.");
+  expect(validate(parse(moved))).toEqual([]);
+});
+
 test("unlabeled toast is rejected", () => {
   const errs = validate(parse(CARD.replace("> 祝酒註 — welcome, Nova.", "> welcome, Nova.")));
   expect(errs.some(e => e.includes("祝酒註"))).toBe(true);

@@ -8,12 +8,20 @@ export function esc(s: string): string {
 // Minimal markdown: ### headings, blockquotes, lists, paragraphs;
 // inline code/bold/italic/links. Guests' words pass through escaped.
 export function mdToHtml(md: string): string {
+  // Code spans are carved out first so emphasis/link rules never
+  // rewrite their contents.
   const inline = (s: string) =>
     esc(s)
-      .replace(/`([^`]+)`/g, "<code>$1</code>")
-      .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
-      .replace(/\*([^*]+)\*/g, "<em>$1</em>")
-      .replace(/\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g, '<a href="$2">$1</a>');
+      .split(/(`[^`]+`)/)
+      .map(part =>
+        part.startsWith("`") && part.endsWith("`") && part.length > 2
+          ? `<code>${part.slice(1, -1)}</code>`
+          : part
+              .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
+              .replace(/\*([^*]+)\*/g, "<em>$1</em>")
+              .replace(/\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g, '<a href="$2">$1</a>'),
+      )
+      .join("");
   const out: string[] = [];
   let para: string[] = [];
   let list: string[] | null = null;
@@ -111,8 +119,12 @@ const SECTION_TITLES: [SectionKey, string][] = [
 ];
 
 export function renderGuest(card: GuestCard): string {
+  // Guest links are guest-controlled: only http(s) becomes a
+  // hyperlink; anything else (DIDs, javascript:, data:) shows as text.
   const links = card.links.length
-    ? `<p class="meta">${card.links.map(l => `<a href="${esc(l)}">${esc(l)}</a>`).join(" · ")}</p>`
+    ? `<p class="meta">${card.links
+        .map(l => (/^https?:\/\//i.test(l) ? `<a href="${esc(l)}">${esc(l)}</a>` : esc(l)))
+        .join(" · ")}</p>`
     : "";
   const sections = SECTION_TITLES
     .map(([key, title]) => `<section><h2>${esc(title)}</h2>\n${mdToHtml(card.sections[key])}</section>`)

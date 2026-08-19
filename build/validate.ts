@@ -17,17 +17,23 @@ export function validate(card: GuestCard): string[] {
     errors.push("Brought & Taking 帶咗咩嚟・想帶走咩: missing or empty — one joy on the record is the only cover charge");
 
   if (card.sections.toasts) {
-    let inQuote = false;
+    // The label may sit on any line of the blockquote — the rule is
+    // that each toast carries it, not where.
+    const blocks: string[][] = [];
+    let cur: string[] | null = null;
     for (const line of card.sections.toasts.split("\n")) {
       if (/^>/.test(line)) {
-        if (!inQuote && !line.includes("祝酒註"))
-          errors.push(`Toasts: toast not labeled 祝酒註: "${line.slice(0, 60)}"`);
-        inQuote = true;
+        if (!cur) { cur = []; blocks.push(cur); }
+        cur.push(line);
       } else if (line.trim() === "") {
-        inQuote = false;
+        cur = null;
       } else {
         errors.push(`Toasts: prose outside a 祝酒註 blockquote: "${line.trim().slice(0, 60)}"`);
       }
+    }
+    for (const b of blocks) {
+      if (!b.some(l => l.includes("祝酒註")))
+        errors.push(`Toasts: toast not labeled 祝酒註: "${b[0].slice(0, 60)}"`);
     }
   }
   return errors;

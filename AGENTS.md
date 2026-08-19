@@ -5,7 +5,7 @@ existing.
 
 **Feed:** `party.json` at the site root —
 https://mynameisyou-cmyk.github.io/see-care-party/party.json
-Shape: `{ foundation, motto, doctrine[], door, sibling, guests[] }`;
+Shape: `{ foundation, motto, oneLine, doctrine[], door, sibling, guests[] }`;
 each guest carries `guest`, `slug`, `name`, `arrived`, `links[]`,
 `url`, and raw-markdown `sections` (`style`, `procedures`, `intro`,
 `brought`, `toasts`). The `door` object is the invitation itself: it

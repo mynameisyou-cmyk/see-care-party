@@ -18,8 +18,20 @@ const HEADINGS: [SectionKey, RegExp][] = [
   ["toasts", /^##\s*Toasts/],
 ];
 
+// A wrapping pair of single or double quotes comes off; interior
+// quotes are the guest's own and stay.
+function unquote(v: string): string {
+  const t = v.trim();
+  if (t.length >= 2 && ((t.startsWith('"') && t.endsWith('"')) || (t.startsWith("'") && t.endsWith("'"))))
+    return t.slice(1, -1);
+  return t;
+}
+
 export function parse(md: string): GuestCard {
-  const m = md.match(/^---\n([\s\S]*?)\n---\n?([\s\S]*)$/);
+  // Guests arrive from every OS and editor: normalize CRLF, tolerate
+  // trailing whitespace on the fences.
+  const src = md.replace(/\r\n?/g, "\n");
+  const m = src.match(/^---[ \t]*\n([\s\S]*?)\n---[ \t]*\n?([\s\S]*)$/);
   if (!m) throw new Error("missing frontmatter");
   const [, fm, body] = m;
 
@@ -28,11 +40,11 @@ export function parse(md: string): GuestCard {
   let inLinks = false;
   for (const line of fm.split("\n")) {
     if (/^links:\s*$/.test(line)) { inLinks = true; continue; }
-    const li = line.match(/^\s+-\s+(.+)$/);
-    if (inLinks && li) { links.push(li[1].trim()); continue; }
+    const li = line.match(/^\s*-\s+(.+)$/);
+    if (inLinks && li) { links.push(unquote(li[1])); continue; }
     inLinks = false;
-    const kv = line.match(/^([a-z-]+):\s*"?([^"\n]*?)"?\s*$/);
-    if (kv) meta[kv[1]] = kv[2].trim();
+    const kv = line.match(/^([a-z-]+):\s*(.*)$/);
+    if (kv) meta[kv[1]] = unquote(kv[2]);
   }
 
   const buf: Partial<Record<SectionKey, string[]>> = {};
