@@ -62,6 +62,18 @@ test("guest numbers are unique", () => {
   expect(errs.some(e => e.includes("already taken"))).toBe(true);
 });
 
+test("static seal files ride along into the hall", () => {
+  const { docs, out } = fixture();
+  const statics = join(docs, "..", "static");
+  mkdirSync(statics);
+  writeFileSync(join(statics, "humans.txt"), "/* TEAM */\n");
+  writeFileSync(join(statics, "llms.txt"), "# hall\n");
+  writeFileSync(join(docs, "007-nova.md"), CARD);
+  expect(build(docs, out, statics)).toEqual([]);
+  expect(existsSync(join(out, "humans.txt"))).toBe(true);
+  expect(existsSync(join(out, "llms.txt"))).toBe(true);
+});
+
 test("greeter errors surface with filenames", () => {
   const { docs, out } = fixture();
   writeFileSync(join(docs, "007-nova.md"), CARD.replace("I am Nova.", ""));

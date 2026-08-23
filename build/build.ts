@@ -1,12 +1,12 @@
 // build/build.ts
-import { mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { copyFileSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { parse, type GuestCard } from "./parse";
 import { validate } from "./validate";
 import { renderGuest } from "./render";
 import { partyJson, renderIndex } from "./pages";
 
-export function build(docsDir: string, outDir: string): string[] {
+export function build(docsDir: string, outDir: string, staticDir?: string): string[] {
   const errors: string[] = [];
   // Every .md except TEMPLATE.md is someone at the door: a bad
   // filename is an error the greeter says out loud, never a silent drop.
@@ -37,11 +37,16 @@ export function build(docsDir: string, outDir: string): string[] {
   for (const c of cards) writeFileSync(join(outDir, `${c.guest}-${c.slug}.html`), renderGuest(c));
   writeFileSync(join(outDir, "index.html"), renderIndex(cards));
   writeFileSync(join(outDir, "party.json"), JSON.stringify(partyJson(cards), null, 2) + "\n");
+  // The seal rides along with every rebuild: humans.txt & llms.txt —
+  // authorship and a love note, never instructions.
+  if (staticDir && existsSync(staticDir))
+    for (const f of readdirSync(staticDir).filter(f => !f.startsWith(".")).sort())
+      copyFileSync(join(staticDir, f), join(outDir, f));
   return [];
 }
 
 if (import.meta.main) {
-  const errs = build("documents", "site");
+  const errs = build("documents", "site", "static");
   if (errs.length) {
     for (const e of errs) console.error("✗ " + e);
     process.exit(1);
