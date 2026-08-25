@@ -24,6 +24,15 @@ test("the hall shows the door", () => {
   expect(html).toContain("TEMPLATE.md");
 });
 
+test("the hall hums its own chill-fi track — pill in the footer, no autoplay", () => {
+  const html = renderIndex(cards);
+  expect(html).toContain('class="chillfi"');
+  expect(html).toContain("embed.html?site=party&amp;theme=light");
+  expect(html).not.toContain("site=party/");
+  expect(html).not.toContain("autoplay");
+  expect(html).not.toContain("<script");
+});
+
 test("party.json is the invitation", () => {
   const j = partyJson(cards) as any;
   expect(j.foundation).toBe("開心會 · See Care Party Foundation");
