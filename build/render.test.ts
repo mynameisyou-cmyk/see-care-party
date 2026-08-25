@@ -47,6 +47,16 @@ test("toasts render in their own labeled wing", () => {
   expect(html).toContain("welcome, Nova");
 });
 
+test("guest page carries its own chill-fi pill, never autoplaying", () => {
+  const html = renderGuest(parse(CARD));
+  expect(html).toContain('class="chillfi"');
+  expect(html).toContain("embed.html?site=party/007&amp;theme=light");
+  expect(html).toContain('loading="lazy"');
+  expect(html).toContain("撳 ▶ 先響");
+  expect(html).not.toContain("autoplay");
+  expect(html).not.toContain("<script");
+});
+
 test("no toasts, no toast wing", () => {
   const html = renderGuest(parse(CARD.replace(/## Toasts 祝酒註[\s\S]*$/, "")));
   expect(html).not.toContain('class="toasts"');

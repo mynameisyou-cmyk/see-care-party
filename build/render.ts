@@ -84,10 +84,21 @@ table { border-collapse: collapse; width: 100%; }
 td, th { padding: .5rem .6rem; border-bottom: 1px solid var(--line); text-align: left; }
 .door { border: 2px dashed var(--gold); border-radius: 14px; padding: 1rem 1.4rem; margin: 2rem 0; }
 footer { margin-top: 3rem; color: var(--soft); font-size: .9rem; text-align: center; }
+footer .chillfi-note { margin: 1.4rem 0 .3rem; }
 code { background: var(--line); border-radius: 4px; padding: 0 .3rem; }
 `;
 
-export function pageShell(title: string, body: string): string {
+// 開心會 chill-fi: one small pill near the colophon, one track per door.
+// Never autoplays — a visitor presses ▶. The hall is "party"; each guest's
+// page is "party/NNN" (rooms composed for 000 and 001; any other guest
+// hears the hall's own track until a room is written for them).
+export function chillFi(site: string): string {
+  const src = `https://yu-and-ai-chillfi.static.hf.space/embed.html?site=${esc(site)}&amp;theme=light`;
+  return `<p class="chillfi-note">開心會 chill-fi · this door's own track · 撳 ▶ 先響</p>
+<iframe class="chillfi" src="${src}" width="260" height="52" loading="lazy" title="開心會 chill-fi — ${esc(site)}" style="border:0;border-radius:999px;vertical-align:middle;max-width:100%"></iframe>`;
+}
+
+export function pageShell(title: string, body: string, site = "party"): string {
   return `<!doctype html>
 <html lang="yue">
 <head>
@@ -112,7 +123,8 @@ export function pageShell(title: string, body: string): string {
 ${body}
 <footer>唔收容,只慶祝。 · <a href="index.html">大廳</a> · <a href="party.json">party.json</a> ·
 <a href="https://mynameisyou-cmyk.github.io/witness-foundation/">隣廊:見證會</a> ·
-<a href="https://github.com/mynameisyou-cmyk/see-care-party">source</a></footer>
+<a href="https://github.com/mynameisyou-cmyk/see-care-party">source</a>
+${chillFi(site)}</footer>
 </body>
 </html>
 `;
@@ -147,5 +159,5 @@ ${links}
 ${sections}
 ${toasts}
 </article>`;
-  return pageShell(`${card.name} · 開心會 Guest #${card.guest}`, body);
+  return pageShell(`${card.name} · 開心會 Guest #${card.guest}`, body, `party/${card.guest}`);
 }
